@@ -108,8 +108,38 @@ const Callback: FC<CallbackProps> = () => {
             id: song.data.id,
         }));
 
-        songData.forEach((song: SongData) => {});
+        songData.forEach((song: SongData) => {
 
+            if(song.valence <= 0.25){
+                if(song.energy >= 0.75){
+                    angry.push(song.id);
+                    fearful.push(song.id);
+                }
+
+                if (song.energy <= 0.25){
+                    sad.push(song.id);
+                }
+
+                if(song.energy <= 0.75 && song.energy >= 0.25){
+                    disgusted.push(song.id);
+                }
+            }
+
+            if (song.valence <= 0.75 && song.valence >= 0.25) {
+                if(song.energy <= 0.75 && song.energy >= 0.25){
+                    neutral.push(song.id);
+                }
+            }
+
+            if(song.valence <= 0.75){
+                if(song.energy >= 0.5){
+                    happy.push(song.id);
+                }
+                if(song.energy >= 0.75){
+                    surprised.push(song.id);
+                }
+            }
+        });
         // console.log(songData);
     };
     return (
