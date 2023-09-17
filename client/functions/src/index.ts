@@ -8,7 +8,7 @@
  */
 
 import * as logger from 'firebase-functions/logger';
-const Jimp = require('jimp');
+const sharp = require('sharp');
 
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
@@ -20,37 +20,61 @@ const Jimp = require('jimp');
 
 import { initializeApp } from 'firebase-admin/app';
 import { getStorage } from 'firebase-admin/storage';
+import { getFirestore } from 'firebase-admin/firestore';
 const path = require('path');
 import { onObjectFinalized } from 'firebase-functions/v2/storage';
 
 initializeApp();
 
-exports.grayscaleImage = onObjectFinalized({ cpu: 2 }, async (event) => {
-    // ...
-    const fileBucket = event.data.bucket; // Storage bucket containing the file.
-    const filePath = event.data.name; // File path in the bucket.
-    const contentType = event.data.contentType; // File content type.
+exports.grayscaleImage = onObjectFinalized(
+    { cpu: 2, timeoutSeconds: 300, memory: '1GiB' },
+    async event => {
+        // ...
+        const fileBucket = event.data.bucket; // Storage bucket containing the file.
+        const filePath = event.data.name; // File path in the bucket.
+        const contentType = event.data.contentType; // File content type.
 
-    // Exit if this is triggered on a file that is not an image.
-    if (!contentType?.startsWith('image/')) {
-        return logger.log('This is not an image.');
-    }
+        // Exit if this is triggered on a file that is not an image.
+        if (!contentType?.startsWith('image/')) {
+            return logger.log('This is not an image.');
+        }
 
-    const fileName = path.basename(filePath);
-    if (fileName.startsWith('gray_')) {
-        return logger.log('Already grayscaled.');
-    }
+        const fileName = path.basename(filePath);
+        if (fileName.startsWith('gray_')) {
+            return logger.log('Already grayscaled.');
+        }
 
-    const bucket = getStorage().bucket(fileBucket);
-    const downloadResponse = await bucket.file(filePath).download();
-    const imageBuffer = downloadResponse[0];
+        const bucket = getStorage().bucket(fileBucket);
+        const downloadResponse = await bucket.file(filePath).download();
+        const imageBuffer = downloadResponse[0];
 
-    Jimp.read(imageBuffer).then((image: any) => {
-        image.greyscale();
-        image.resize(180, 180);
+        // Generate a thumbnail using sharp.
+        const thumbnailBuffer = await sharp(imageBuffer)
+            .resize({
+                width: 180,
+                height: 180,
+                withoutEnlargement: true,
+            })
+            .greyscale()
+            .toBuffer();
+        logger.log('Thumbnail created');
 
-        image.getBuffer(Jimp.MIME_PNG, (err: any, buffer: any) => {
-            bucket.file('images/gray_' + fileName + '.png').save(buffer);
-        });
-    });
-});
+        // Prefix 'thumb_' to file name.
+        const thumbFileName = `gray_${fileName}.jpg`;
+        const thumbFilePath = path.join(path.dirname(filePath), thumbFileName);
+
+        // Upload the thumbnail.
+        const metadata = { contentType: contentType };
+        await bucket
+            .file(thumbFilePath)
+            .save(thumbnailBuffer, {
+                metadata: metadata,
+            })
+            .then(() =>
+                getFirestore()
+                    .collection('files')
+                    .doc(fileName.replaceAll('[^0-9]', ''))
+                    .set({ done: true }),
+            );
+    },
+);

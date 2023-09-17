@@ -42,10 +42,15 @@ const Login: FC<LoginProps> = () => {
     };
 
     return (
-        <>
-            {/* <button onClick={findData}> hi</button> */}
+        <div
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
+            }}
+        >
+            <h1>Log in to create a custom playlist with just an image!</h1>
             <a href={auth_url}>log in</a>
-        </>
+        </div>
     );
 };
 

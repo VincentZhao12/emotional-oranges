@@ -1,26 +1,32 @@
 import React, { FC, FormEvent, useState } from 'react';
-import { storage } from '../firebase';
+import { db, storage } from '../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { url } from 'inspector';
+import { doc, setDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import Compressor from 'compressorjs';
 
 interface UploadImageProps {}
 
 const UploadImage: FC<UploadImageProps> = () => {
     const [file, setFile] = useState<any>(undefined);
+    const navigate = useNavigate();
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        const imageRef = ref(storage, `images/${Date.now()}`);
+        const date = Date.now();
+        const imageRef = ref(storage, `images/${date}`);
 
-        let imageUrl: string | undefined = '';
+        localStorage.setItem('img', date + '');
         try {
+            setDoc(doc(db, 'files', '' + date), {
+                done: false,
+            });
             await uploadBytes(imageRef, file);
-            imageUrl = await getDownloadURL(imageRef);
+            navigate('/playlist');
         } catch (e) {
             console.log(e);
         }
-
-        localStorage.setItem('img', imageUrl);
 
         console.log('uploaded');
     };
@@ -31,12 +37,20 @@ const UploadImage: FC<UploadImageProps> = () => {
             <form onSubmit={handleSubmit}>
                 <input
                     type="file"
-                    accept="image/png"
+                    accept="image"
                     name="Upload Video"
-                    onChange={(e) => {
+                    onChange={e => {
                         if (e.target.files) {
-                            const file = e.target.files[0];
-                            setFile(file);
+                            const image = e.target.files[0];
+                            new Compressor(image, {
+                                quality: 0.1, // 0.6 can also be used, but its not recommended to go below.
+                                success: compressedResult => {
+                                    // compressedResult has the compressed file.
+                                    // Use the compressed file to upload the images to your server.
+                                    setFile(compressedResult);
+                                    console.log('compress');
+                                },
+                            });
                         }
                     }}
                 />
