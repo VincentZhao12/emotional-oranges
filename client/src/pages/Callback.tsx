@@ -27,13 +27,13 @@ const getTokenFromURL = () => {
 
 const Callback: FC<CallbackProps> = () => {
     const { accessToken, setAccessToken } = useAuth();
-    const [angry, setAngry] = useState<SongData[]>([]);
-    const [happy, setHappy] = useState<SongData[]>([]);
-    const [disgusted, setDisgusted] = useState<SongData[]>([]);
-    const [fearful, setFearful] = useState<SongData[]>([]);
-    const [neutral, setNeutral] = useState<SongData[]>([]);
-    const [sad, setSad] = useState<SongData[]>([]);
-    const [surprised, setSurprised] = useState<SongData[]>([]);
+    const [angry, setAngry] = useState<String[]>([]);
+    const [happy, setHappy] = useState<String[]>([]);
+    const [disgusted, setDisgusted] = useState<String[]>([]);
+    const [fearful, setFearful] = useState<String[]>([]);
+    const [neutral, setNeutral] = useState<String[]>([]);
+    const [sad, setSad] = useState<String[]>([]);
+    const [surprised, setSurprised] = useState<String[]>([]);
 
     useEffect(() => {
         // const spotifyToken = getTokenFromURL();
@@ -94,13 +94,13 @@ const Callback: FC<CallbackProps> = () => {
 
         console.log(song_ids);
 
-        let happy = [];
-        let angry = [];
-        let disgusted = [];
-        let fearful = [];
-        let neutral = [];
-        let sad = [];
-        let surprised = [];
+        let happy:String[] = [];
+        let angry:String[] = [];
+        let disgusted:String[] = [];
+        let fearful:String[] = [];
+        let neutral:String[] = [];
+        let sad:String[] = [];
+        let surprised:String[] = [];
 
         const songData = song_ids.map((song: any) => ({
             valence: song.data.valence,
@@ -108,7 +108,45 @@ const Callback: FC<CallbackProps> = () => {
             id: song.data.id,
         }));
 
-        songData.forEach((song: SongData) => {});
+        songData.forEach((song: SongData) => {
+
+            if(song.valence <= 0.25){
+                if(song.energy >= 0.75){
+                    angry.push(song.id);
+                    fearful.push(song.id);
+                }
+
+                if (song.energy <= 0.25){
+                    sad.push(song.id);
+                }
+
+                if(song.energy <= 0.75 && song.energy >= 0.25){
+                    disgusted.push(song.id);
+                }
+            }
+
+            if (song.valence <= 0.75 && song.valence >= 0.25) {
+                if(song.energy <= 0.75 && song.energy >= 0.25){
+                    neutral.push(song.id);
+                }
+            }
+
+            if(song.valence <= 0.75){
+                if(song.energy >= 0.5){
+                    happy.push(song.id);
+                }
+                if(song.energy >= 0.75){
+                    surprised.push(song.id);
+                }
+            }
+        });
+        setAngry(angry);
+        setHappy(happy);
+        setSad(sad);
+        setDisgusted(disgusted);
+        setFearful(fearful);
+        setNeutral(neutral);
+        setSurprised(surprised);
 
         // console.log(songData);
     };
