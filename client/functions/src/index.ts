@@ -60,7 +60,7 @@ exports.grayscaleImage = onObjectFinalized(
         logger.log('Thumbnail created');
 
         // Prefix 'thumb_' to file name.
-        const thumbFileName = `gray_${fileName}.jpg`;
+        const thumbFileName = `gray_${fileName}.png`;
         const thumbFilePath = path.join(path.dirname(filePath), thumbFileName);
 
         // Upload the thumbnail.

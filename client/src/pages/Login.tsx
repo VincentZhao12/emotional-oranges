@@ -2,6 +2,8 @@ import axios from 'axios';
 import React, { FC, useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import querystring from 'querystringify';
+import { Button, Heading, Stack, Text, Image } from '@chakra-ui/react';
+import Orange from '../assets/orange-1218158_1280.jpeg';
 
 interface LoginProps {}
 
@@ -42,15 +44,40 @@ const Login: FC<LoginProps> = () => {
     };
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-            }}
-        >
-            <h1>Log in to create a custom playlist with just an image!</h1>
-            <a href={auth_url}>log in</a>
-        </div>
+        <>
+            <Image
+                src={Orange}
+                position={'absolute'}
+                right="-15%"
+                bottom="-20%"
+                zIndex={-1}
+                width={'50%'}
+            />
+            <Stack
+                justifyContent={'center'}
+                height={'60%'}
+                width={'40%'}
+                spacing={7}
+            >
+                <Heading size="lg">
+                    Log in to create a custom playlist with just an image!
+                </Heading>
+                <Text>
+                    Take a picture of your face, our proprietary AI Emotion
+                    Detection model tries to understand your mood and create a
+                    playlist based off of it
+                </Text>
+                <Button
+                    as={'a'}
+                    href={auth_url}
+                    width={'50%'}
+                    size={'lg'}
+                    colorScheme="orange"
+                >
+                    Log In
+                </Button>
+            </Stack>
+        </>
     );
 };
 

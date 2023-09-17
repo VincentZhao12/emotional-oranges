@@ -19,6 +19,13 @@ interface SongData {
 const CLIENT_ID = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
 const CLIENT_SECERT = process.env.REACT_APP_SPOTIFY_CLIENT_SECERT;
 
+interface Song {
+    id: string;
+    name: string;
+    artist: string;
+    album: string;
+}
+
 const Playlist: FC<PlaylistProps> = () => {
     const [model, setModel] = useState<LayersModel | null>(null);
     const [loading1, setLoading1] = useState(false);
@@ -33,36 +40,24 @@ const Playlist: FC<PlaylistProps> = () => {
     const [neutral, setNeutral] = useState<String[]>([]);
     const [sad, setSad] = useState<String[]>([]);
     const [surprised, setSurprised] = useState<String[]>([]);
+    const [pl, setPl] = useState<Song[]>([]);
+
+    useEffect(() => {
+        findData();
+    }, []);
 
     useEffect(() => {
         onSnapshot(
             doc(db, 'files', localStorage.getItem('img') || ''),
             doc => {
                 if (doc.data()?.done) {
-                    setTimeout(loadImg, 500);
+                    setTimeout(loadImg, 1000);
                     console.log('image converted');
                 }
             },
             err => console.log('im a fucking dumbass'),
         );
-        const loadModel = async () => {
-            const model_url = window.location.origin + '/model.json';
-            console.log(model_url);
-            setLoading2(true);
-
-            const [model, hi] = await Promise.all([
-                tf.loadLayersModel(model_url),
-                findData(),
-            ]);
-
-            console.log('hi');
-
-            setLoading2(false);
-
-            setModel(model);
-        };
-        loadModel();
-    }, []);
+    }, [happy]);
 
     const fectchEndpoint = async (url: string) => {
         return await axios.get(url, {
@@ -198,8 +193,6 @@ const Playlist: FC<PlaylistProps> = () => {
         setFearful(fearful);
         setNeutral(neutral);
         setSurprised(surprised);
-
-        // console.log(songData);
     };
 
     const createHTMLImageElement = (imageSrc: any) => {
@@ -214,16 +207,20 @@ const Playlist: FC<PlaylistProps> = () => {
     const loadImg = async () => {
         setLoading1(true);
 
+        const model_url = window.location.origin + '/model.json';
+        const model = await tf.loadLayersModel(model_url);
+
         const storageRef = ref(
             storage,
-            'images/gray_' + localStorage.getItem('img') + '.jpg',
+            'images/gray_' + localStorage.getItem('img') + '.png',
         );
         const url = await getDownloadURL(storageRef);
 
         const image: any = await createHTMLImageElement(url);
 
         // tf.tidy for automatic memory cleanup
-        // const [predictedClass, confidence] = tf.tidy(async() => {
+        // const [predictedClass, confidence] =
+        // tf.tidy(async() => {
         const tensorImg = tf.browser
             .fromPixels(image)
             .toFloat()
@@ -232,7 +229,7 @@ const Playlist: FC<PlaylistProps> = () => {
         const result: any = model?.predict(tensorImg);
 
         console.log(tensorImg.shape);
-        console.log(result);
+        console.log(result.dataSync());
 
         if (!result) return [0, 0];
 
@@ -242,15 +239,89 @@ const Playlist: FC<PlaylistProps> = () => {
             .argMax()
             .dataSync()[0];
 
-        const predictedClass = predicted_index;
         const confidence = Math.round(predictions[predicted_index] * 100);
 
         // return [predictedClass, confidence];
         // });
 
-        setPredictedClass(predictedClass);
+        setPredictedClass(predicted_index);
         setConfidence(confidence);
         setLoading1(false);
+
+        let playlist = [];
+        let chosenEmotion: String[] = [];
+
+        if (predicted_index !== null) {
+            switch (predicted_index) {
+                case 0:
+                    chosenEmotion = happy;
+                    break;
+                case 1:
+                    chosenEmotion = angry; //and fearful
+                    break;
+                case 2:
+                    chosenEmotion = disgusted;
+                    break;
+                case 3:
+                    chosenEmotion = neutral;
+                    break;
+                case 4:
+                    chosenEmotion = sad;
+                    break;
+                default:
+                    chosenEmotion = surprised;
+                    break;
+            }
+            console.log(happy);
+
+            let selectedIndexes: number[] = [];
+            let iterationLimit = 1000000;
+            while (playlist.length < 17) {
+                let index = (Math.random() * chosenEmotion.length) | 0;
+                let notRepeated = true;
+                for (let i = 0; i < selectedIndexes.length; i++) {
+                    if (selectedIndexes[i] === index) {
+                        notRepeated = false;
+                        break;
+                    }
+                }
+
+                if (notRepeated) {
+                    selectedIndexes.push(index);
+                    playlist.push(chosenEmotion[index]);
+                }
+
+                if (iterationLimit === 0) {
+                    break;
+                }
+                iterationLimit -= 1;
+            }
+            try {
+                const request = await Promise.all(
+                    playlist.map(track =>
+                        fectchEndpoint(
+                            'https://api.spotify.com/v1/tracks/' + track,
+                        ),
+                    ),
+                );
+                console.log(request);
+
+                setPl(
+                    request.map(track => {
+                        console.log(track.data.artists[0].name);
+                        return {
+                            name: track.data.name,
+                            artist: track.data.artists[0].name,
+                            album: 'adf',
+                            id: track.data.id,
+                        };
+                    }),
+                );
+            } catch (e) {
+                console.log(e);
+                return;
+            }
+        }
     };
 
     return (
@@ -258,6 +329,13 @@ const Playlist: FC<PlaylistProps> = () => {
             {!loading1 && !loading2 && (
                 <h1>
                     {predictedClass}, {confidence}
+                    <ul>
+                        {pl.map(song => (
+                            <li>
+                                {song.name} by {song.artist}
+                            </li>
+                        ))}
+                    </ul>
                 </h1>
             )}
         </>
