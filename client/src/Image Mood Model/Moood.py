@@ -5,11 +5,13 @@ import pathlib
 
 from keras import layers
 from keras.models import Sequential
+import ssl
 
 data_dir='archive/train'
 batch_size = 32
 img_height = 180
 img_width = 180
+
 train_ds = tf.keras.utils.image_dataset_from_directory(
   data_dir,
   validation_split=0.2,
@@ -60,10 +62,23 @@ model = Sequential([
 model.compile(optimizer=tf.keras.optimizers.legacy.Adam(),
               loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
               metrics=['accuracy'])
-model.save("model.h5")
 
 history = model.fit(
   train_ds,
   validation_data=val_ds,
   epochs=10
+)
+
+img = tf.keras.utils.load_img(
+    "archive/test/happy/im7.png", target_size=(img_height, img_width)
+)
+img_array = tf.keras.utils.img_to_array(img)
+img_array = tf.expand_dims(img_array, 0) # Create a batch
+
+predictions = model.predict(img_array)
+score = tf.nn.softmax(predictions[0])
+
+print(
+    "This image most likely belongs to {} with a {:.2f} percent confidence."
+    .format(class_names[np.argmax(score)], 100 * np.max(score))
 )
