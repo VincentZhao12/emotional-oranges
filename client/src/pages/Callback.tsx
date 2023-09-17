@@ -27,13 +27,13 @@ const getTokenFromURL = () => {
 
 const Callback: FC<CallbackProps> = () => {
     const { accessToken, setAccessToken } = useAuth();
-    const [angry, setAngry] = useState<SongData[]>([]);
-    const [happy, setHappy] = useState<SongData[]>([]);
-    const [disgusted, setDisgusted] = useState<SongData[]>([]);
-    const [fearful, setFearful] = useState<SongData[]>([]);
-    const [neutral, setNeutral] = useState<SongData[]>([]);
-    const [sad, setSad] = useState<SongData[]>([]);
-    const [surprised, setSurprised] = useState<SongData[]>([]);
+    const [angry, setAngry] = useState<String[]>([]);
+    const [happy, setHappy] = useState<String[]>([]);
+    const [disgusted, setDisgusted] = useState<String[]>([]);
+    const [fearful, setFearful] = useState<String[]>([]);
+    const [neutral, setNeutral] = useState<String[]>([]);
+    const [sad, setSad] = useState<String[]>([]);
+    const [surprised, setSurprised] = useState<String[]>([]);
 
     useEffect(() => {
         // const spotifyToken = getTokenFromURL();
@@ -94,13 +94,13 @@ const Callback: FC<CallbackProps> = () => {
 
         console.log(song_ids);
 
-        let happy = [];
-        let angry = [];
-        let disgusted = [];
-        let fearful = [];
-        let neutral = [];
-        let sad = [];
-        let surprised = [];
+        let happy:String[] = [];
+        let angry:String[] = [];
+        let disgusted:String[] = [];
+        let fearful:String[] = [];
+        let neutral:String[] = [];
+        let sad:String[] = [];
+        let surprised:String[] = [];
 
         const songData = song_ids.map((song: any) => ({
             valence: song.data.valence,
@@ -140,6 +140,14 @@ const Callback: FC<CallbackProps> = () => {
                 }
             }
         });
+        setAngry(angry);
+        setHappy(happy);
+        setSad(sad);
+        setDisgusted(disgusted);
+        setFearful(fearful);
+        setNeutral(neutral);
+        setSurprised(surprised);
+
         // console.log(songData);
     };
     return (
