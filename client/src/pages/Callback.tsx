@@ -10,15 +10,14 @@ const Callback: FC<CallbackProps> = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // const spotifyToken = getTokenFromURL();
-        // window.location.hash = '';
-        // console.log(spotifyToken);
-        console.log(window.location.hash);
         const parsed: any = querystringify.parse(window.location.hash);
+        localStorage.setItem('token', parsed.access_token);
         console.log(parsed);
-        setAccessToken(parsed.access_token);
-        // if (parsed.access_token) navigate('/upload');
-        // else navigate('/');
+
+        setTimeout(() => {
+            if (parsed.access_token) navigate('/upload');
+            else navigate('/');
+        }, 100);
     }, []);
 
     return (
