@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Login from './pages/Login';
 import Callback from './pages/Callback';
 import { AuthProvider } from './contexts/AuthContext';
+import UploadImage from './pages/UploadImage';
 
 function App() {
     return (
@@ -12,6 +13,7 @@ function App() {
                     <Routes>
                         <Route path="/" element={<Login />} />
                         <Route path="/callback" element={<Callback />} />
+                        <Route path="/upload" element={<UploadImage />} />
                     </Routes>
                 </AuthProvider>
             </BrowserRouter>
