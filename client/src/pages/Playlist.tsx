@@ -24,7 +24,7 @@ interface SongData {
 }
 
 const CLIENT_ID = process.env.REACT_APP_SPOTIFY_CLIENT_ID;
-const CLIENT_SECERT = process.env.REACT_APP_SPOTIFY_CLIENT_SECERT;
+const CLIENT_SECERT = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET;
 
 interface Song {
     id: string;

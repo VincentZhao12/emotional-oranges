@@ -59,7 +59,7 @@ const Login: FC<LoginProps> = () => {
                 </Text>
                 <Button
                     as={'a'}
-                    href={auth_url}
+                    href={'https://spotify-auth.onrender.com:8888/login'}
                     width={'50%'}
                     size={'lg'}
                     colorScheme="orange"
