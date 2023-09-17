@@ -22,6 +22,7 @@ switch(input) {
         break;
     case 3:
         chosenEmotion = neutral;
+        break;
     case 4:
         chosenEmotion = sad;
         break;
@@ -43,11 +44,11 @@ while(playlist.length < 17){
 
     if(notRepeated){
         selectedIndexes.push(index);
-        playlist.push(chosenEmotion[i].id);
+        playlist.push(chosenEmotion[index].id);
     }
 
-    if(interationLimit === 0){
+    if(iterationLimit === 0){
         break;
     }
-    interationLimit--;
+    iterationLimit -= 1;
 }
