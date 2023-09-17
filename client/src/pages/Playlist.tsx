@@ -7,13 +7,6 @@ import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import modelFile from '../model/model.json';
 import { doc, onSnapshot } from 'firebase/firestore';
-import {
-    Stack,
-    Image as Img,
-    HStack,
-    Text,
-    useMediaQuery,
-} from '@chakra-ui/react';
 
 interface PlaylistProps {}
 
@@ -28,11 +21,9 @@ const CLIENT_SECERT = process.env.REACT_APP_SPOTIFY_CLIENT_SECRET;
 
 interface Song {
     id: string;
-    uri: string;
     name: string;
     artist: string;
     album: string;
-    albumArt: string;
 }
 
 const Playlist: FC<PlaylistProps> = () => {
@@ -41,6 +32,7 @@ const Playlist: FC<PlaylistProps> = () => {
     const [loading2, setLoading2] = useState(false);
     const [confidence, setConfidence] = useState(0);
     const [predictedClass, setPredictedClass] = useState(null);
+    const { accessToken, setAccessToken } = useAuth();
     const [angry, setAngry] = useState<String[]>([]);
     const [happy, setHappy] = useState<String[]>([]);
     const [disgusted, setDisgusted] = useState<String[]>([]);
@@ -49,27 +41,12 @@ const Playlist: FC<PlaylistProps> = () => {
     const [sad, setSad] = useState<String[]>([]);
     const [surprised, setSurprised] = useState<String[]>([]);
     const [pl, setPl] = useState<Song[]>([]);
-    const [accessToken, setAccessToken] = useState<string>(
-        localStorage.getItem('token') || '',
-    );
-    const [link, setLink] = useState<string>('');
-    const [img, setImg] = useState<string>('');
-    const [isLargerThan900] = useMediaQuery('(min-width: 900px)');
 
     useEffect(() => {
         findData();
-        (async () => {
-            const storageRef = ref(
-                storage,
-                'images/' + localStorage.getItem('img'),
-            );
-            const url = await getDownloadURL(storageRef);
-            setImg(url);
-        })();
     }, []);
 
     useEffect(() => {
-        setAccessToken(localStorage.getItem('token') || '');
         onSnapshot(
             doc(db, 'files', localStorage.getItem('img') || ''),
             doc => {
@@ -274,7 +251,7 @@ const Playlist: FC<PlaylistProps> = () => {
         let playlist = [];
         let chosenEmotion: String[] = [];
 
-        if (predicted_index !== null && pl.length == 0) {
+        if (predicted_index !== null) {
             switch (predicted_index) {
                 case 0:
                     chosenEmotion = happy;
@@ -299,7 +276,7 @@ const Playlist: FC<PlaylistProps> = () => {
 
             let selectedIndexes: number[] = [];
             let iterationLimit = 1000000;
-            while (playlist.length < 20) {
+            while (playlist.length < 17) {
                 let index = (Math.random() * chosenEmotion.length) | 0;
                 let notRepeated = true;
                 for (let i = 0; i < selectedIndexes.length; i++) {
@@ -329,19 +306,17 @@ const Playlist: FC<PlaylistProps> = () => {
                 );
                 console.log(request);
 
-                const list = request.map(track => {
-                    console.log(track.data.artists[0].name);
-                    return {
-                        name: track.data.name,
-                        artist: track.data.artists[0].name,
-                        album: track.data.album.name,
-                        albumArt: track.data.album.images[2].url,
-                        uri: track.data.uri,
-                        id: track.data.id,
-                    };
-                });
-
-                setPl(list);
+                setPl(
+                    request.map(track => {
+                        console.log(track.data.artists[0].name);
+                        return {
+                            name: track.data.name,
+                            artist: track.data.artists[0].name,
+                            album: 'adf',
+                            id: track.data.id,
+                        };
+                    }),
+                );
             } catch (e) {
                 console.log(e);
                 return;
@@ -350,25 +325,20 @@ const Playlist: FC<PlaylistProps> = () => {
     };
 
     return (
-        <Stack width={isLargerThan900 ? '40%' : '100%'}>
-            <Text>
-                <b>Your New Playlist:</b>
-            </Text>
-            <Img width="100%" src={img || ''} />
-            {!loading1 &&
-                !loading2 &&
-                pl.map((song: Song) => (
-                    <>
-                        <HStack justifyContent={'flex-start'} width={'80%'}>
-                            <Img src={song.albumArt} alt="" />
-                            <Text>{song.name} | </Text>
-                            <Text>{song.album} |</Text>
-                            <Text>{song.artist} </Text>
-                        </HStack>
-                        <hr />
-                    </>
-                ))}
-        </Stack>
+        <>
+            {!loading1 && !loading2 && (
+                <h1>
+                    {predictedClass}, {confidence}
+                    <ul>
+                        {pl.map(song => (
+                            <li>
+                                {song.name} by {song.artist}
+                            </li>
+                        ))}
+                    </ul>
+                </h1>
+            )}
+        </>
     );
 };
 

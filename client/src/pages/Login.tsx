@@ -27,10 +27,21 @@ const Login: FC<LoginProps> = () => {
         querystring.stringify({
             response_type: 'token',
             client_id: CLIENT_ID,
-            scope: 'user-read-private user-read-email playlist-modify-public user-top-read user-read-recently-played user-library-read playlist-modify-private',
+            scope: 'user-read-private user-read-email playlist-modify-public user-top-read user-read-recently-played user-library-read',
             redirect_uri: window.location.href + 'callback',
             state: generateRandomString(16),
         });
+
+    const { accessToken, setAccessToken } = useAuth();
+
+    const findData = async () => {
+        const res = await axios('', {
+            headers: {
+                Authorization: 'Bearer ' + accessToken,
+            },
+        });
+        console.log(res);
+    };
 
     return (
         <>
@@ -41,7 +52,6 @@ const Login: FC<LoginProps> = () => {
                 bottom="-20%"
                 zIndex={-1}
                 width={'50%'}
-                overflow={'hidden'}
             />
             <Stack
                 justifyContent={'center'}
@@ -55,7 +65,7 @@ const Login: FC<LoginProps> = () => {
                 <Text>
                     Take a picture of your face, our proprietary AI Emotion
                     Detection model tries to understand your mood and create a
-                    playlist based off of it!!
+                    playlist based off of it
                 </Text>
                 <Button
                     as={'a'}
